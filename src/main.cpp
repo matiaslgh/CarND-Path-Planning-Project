@@ -5,13 +5,28 @@
 #include <vector>
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
-#include "helpers.h"
 #include "json.hpp"
+#include "path_builder.h"
 
 // for convenience
 using nlohmann::json;
 using std::string;
 using std::vector;
+
+// Checks if the SocketIO event has JSON data.
+// If there is data the JSON object in string format will be returned,
+//   else the empty string "" will be returned.
+string hasData(string s) {
+  auto found_null = s.find("null");
+  auto b1 = s.find_first_of("[");
+  auto b2 = s.find_first_of("}");
+  if (found_null != string::npos) {
+    return "";
+  } else if (b1 != string::npos && b2 != string::npos) {
+    return s.substr(b1, b2 - b1 + 2);
+  }
+  return "";
+}
 
 int main() {
   uWS::Hub h;
@@ -49,9 +64,10 @@ int main() {
     map_waypoints_dx.push_back(d_x);
     map_waypoints_dy.push_back(d_y);
   }
+  PathBuilder path_builder{ map_waypoints_s, map_waypoints_x, map_waypoints_y };
 
   h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,
-               &map_waypoints_dx,&map_waypoints_dy]
+               &map_waypoints_dx,&map_waypoints_dy, &path_builder]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -90,21 +106,12 @@ int main() {
 
           json msgJson;
 
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
+          vector<vector<double>> next_points = path_builder.build_path(
+            previous_path_x, previous_path_y, car_s, car_x, car_y, car_yaw
+          );
 
-          double dist_inc = 0.44;
-          for (int i = 0; i < 50; ++i) {
-            double next_car_s = car_s + (i + 1) * dist_inc;
-            double next_car_d = 6;
-            vector<double> nextXY = getXY(next_car_s, next_car_d, map_waypoints_s, map_waypoints_x, map_waypoints_y);
-            next_x_vals.push_back(nextXY[0]);
-            next_y_vals.push_back(nextXY[1]);
-          }
-
-
-          msgJson["next_x"] = next_x_vals;
-          msgJson["next_y"] = next_y_vals;
+          msgJson["next_x"] = next_points[0];
+          msgJson["next_y"] = next_points[1];
 
           auto msg = "42[\"control\","+ msgJson.dump()+"]";
 
