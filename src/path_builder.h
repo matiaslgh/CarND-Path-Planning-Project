@@ -1,6 +1,15 @@
+#ifndef PATH_BUILDER_H
+#define PATH_BUILDER_H
+
 #include <vector>
+#include "predictor.h"
 
 using std::vector;
+
+struct LaneAndSpeed {
+  int lane;
+  double speed;
+};
 
 class PathBuilder {
   private:
@@ -15,9 +24,12 @@ class PathBuilder {
     vector<vector<double>> build_path(
       const vector<double> &previous_path_x,
       const vector<double> &previous_path_y,
-      double car_s,
-      double car_x,
-      double car_y,
-      double car_yaw
+      EgoCar ego_car,
+      int target_lane,
+      double ref_vel
     );
+    vector<LaneAndSpeed> get_possible_lanes_and_speeds(Prediction prediction, int target_lane, double ref_vel);
+    LaneAndSpeed get_best_lane_and_speed(vector<LaneAndSpeed> lanes_and_speeds, int current_lane, double current_speed);
 };
+
+#endif // PATH_BUILDER_H
