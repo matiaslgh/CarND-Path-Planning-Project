@@ -166,8 +166,7 @@ vector<LaneAndSpeed> PathBuilder::get_possible_lanes_and_speeds(Prediction predi
   if (prediction.front_car_data.is_free) {
     lanes_and_speeds.push_back({ target_lane, min(MAX_SPEED, ref_vel + 8 * 0.02) });
   } else {
-    // TODO: It lowers the speed to fast .. I need something more like ref_vel - 2 * 0.02
-    lanes_and_speeds.push_back({ target_lane, prediction.front_car_data.speed });
+    lanes_and_speeds.push_back({ target_lane, max(prediction.front_car_data.speed, ref_vel - 2 * 0.02) });
 
     if (prediction.left_car_data.is_free) {
       lanes_and_speeds.push_back({
