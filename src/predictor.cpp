@@ -58,14 +58,14 @@ bool Predictor::is_on_the_left_of_ego_car(Car car) {
   bool is_on_the_left = is_same_lane(car, target_lane - 1);
   bool is_in_limit_left_lane = target_lane == 0;
 
-  return  is_in_limit_left_lane || ( is_on_the_left && is_in_range(car, ego_car, -30, 40) );
+  return  is_in_limit_left_lane || ( is_on_the_left && is_in_range(car, ego_car, -10, 50) );
 }
 
 bool Predictor::is_on_the_right_of_ego_car(Car car) {
   bool is_on_the_right = is_same_lane(car, target_lane - 1);
   bool is_in_limit_right_lane = target_lane == 2;
 
-  return  is_in_limit_right_lane || ( is_on_the_right && is_in_range(car, ego_car, -30, 40) );
+  return  is_in_limit_right_lane || ( is_on_the_right && is_in_range(car, ego_car, -10, 50) );
 }
 
 

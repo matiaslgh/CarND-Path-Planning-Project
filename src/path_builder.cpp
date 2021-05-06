@@ -1,5 +1,6 @@
 #include "path_builder.h"
 
+#include <iostream>
 #include <vector>
 #include "spline.h"
 #include "helpers.h"
@@ -112,7 +113,7 @@ vector<vector<double>> getSmoothTransition(
 
   double x_add_on = 0;
 
-  for (int i = 1; i < 50 - prev_size; i++ ) {
+  for (int i = 1; i < 20 - prev_size; i++ ) {
     double N = target_dist / (0.02 * ref_vel);
     double x_point = x_add_on + target_x/N;
     double y_point = s(x_point);
@@ -190,34 +191,23 @@ double calculate_lane_change_cost(int lane, int potential_lane) {
   return std::abs(lane - potential_lane) / 3;
 }
 
-double calculate_acceleration_cost(double car_speed, double potential_ref_vel) {
-  double acc = (potential_ref_vel - car_speed) / 0.02;
-  if (acc < -9.8 || acc > 9.8) {
+double calculate_speed_cost(double car_speed, double potential_ref_vel) {
+  if (potential_ref_vel > MAX_SPEED) {
     return 1;
   }
-  return std::abs(acc) / 9.8;
-}
-
-double calculate_speed_cost(double car_speed, double potential_ref_vel) {
-  if (potential_ref_vel < MAX_SPEED) {
-    return 0.8 * (MAX_SPEED - potential_ref_vel) / MAX_SPEED;
-  } else {
-    if (car_speed > 50) {
-      return 1;
-    } else {
-      return (potential_ref_vel - MAX_SPEED) / 0.5;
-    }
+  if (potential_ref_vel < car_speed) {
+    return 2 * (car_speed - potential_ref_vel) / MAX_SPEED;
   }
+
+  return 0.5 * (potential_ref_vel - car_speed) / MAX_SPEED;
 }
 
 double calculate_cost(int lane, double car_speed, int potential_lane, double potential_ref_vel) {
   double cost_lane_change = calculate_lane_change_cost(lane, potential_lane);
 
-  double cost_acc = calculate_acceleration_cost(car_speed, potential_ref_vel);
-
   double cost_speed = calculate_speed_cost(car_speed, potential_ref_vel);
 
-  return 10 * cost_lane_change + 10 * cost_acc + 10 * cost_speed;
+  return cost_lane_change + cost_speed;
 }
 
 LaneAndSpeed PathBuilder::get_best_lane_and_speed(vector<LaneAndSpeed> lane_and_speeds, int current_lane, double current_speed) {
