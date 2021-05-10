@@ -167,11 +167,11 @@ LaneAndSpeed PathBuilder::get_best_lane_and_speed(Predictor predictor, int curre
   
   if (predictor.is_left_free() && predictor.is_right_free()) {
     if (predictor.get_car_left_front().is_null()) {
-      double speed = min(MAX_SPEED, current_speed + 5 * 0.02);
+      double speed = min(MAX_SPEED, current_speed + 2 * 0.02);
       return { current_lane - 1, speed };
     }
     if (predictor.get_car_right_front().is_null()) {
-      double speed = min(MAX_SPEED, current_speed + 5 * 0.02);
+      double speed = min(MAX_SPEED, current_speed + 2 * 0.02);
       return { current_lane + 1, speed };
     }
     double left_front_speed = predictor.get_car_left_front().get_speed();
