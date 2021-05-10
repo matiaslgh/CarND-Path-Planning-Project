@@ -110,7 +110,7 @@ vector<vector<double>> getSmoothTransition(
 
   double x_add_on = 0;
 
-  for (int i = 1; i < 20 - prev_size; i++ ) {
+  for (int i = 1; i < 10 - prev_size; i++ ) {
     double N = target_dist / (0.02 * ref_vel);
     double x_point = x_add_on + target_x/N;
     double y_point = s(x_point);
@@ -167,30 +167,30 @@ LaneAndSpeed PathBuilder::get_best_lane_and_speed(Predictor predictor, int curre
   
   if (predictor.is_left_free() && predictor.is_right_free()) {
     if (predictor.get_car_left_front().is_null()) {
-      double speed = min(MAX_SPEED, current_speed + 2 * 0.02);
+      double speed = min(MAX_SPEED, current_speed + 0.02);
       return { current_lane - 1, speed };
     }
     if (predictor.get_car_right_front().is_null()) {
-      double speed = min(MAX_SPEED, current_speed + 2 * 0.02);
+      double speed = min(MAX_SPEED, current_speed + 0.02);
       return { current_lane + 1, speed };
     }
     double left_front_speed = predictor.get_car_left_front().get_speed();
     double right_front_speed = predictor.get_car_right_front().get_speed();
     if (left_front_speed > right_front_speed) {
-      double speed = max(left_front_speed, left_front_speed - 2 * 0.02);
+      double speed = max(left_front_speed, left_front_speed - 0.02);
       return { current_lane - 1, speed };
     }
-    double speed = max(right_front_speed, right_front_speed - 2 * 0.02);
+    double speed = max(right_front_speed, right_front_speed - 0.02);
     return { current_lane - 1, speed };
   }
 
   if (predictor.is_left_free()) {
-    double speed = min(MAX_SPEED, current_speed + 2 * 0.02);
+    double speed = min(MAX_SPEED, current_speed + 0.02);
     return { current_lane - 1, speed };
   }
 
   if (predictor.is_right_free()) {
-    double speed = min(MAX_SPEED, current_speed + 2 * 0.02);
+    double speed = min(MAX_SPEED, current_speed + 0.02);
     return { current_lane + 1, speed };
   }
 
