@@ -7,6 +7,9 @@ int LEFT_LANE = 0;
 int CENTER_LANE = 1;
 int RIGHT_LANE = 2;
 
+int METERS_OF_DIFFERENCE_FRONT = 40;
+int METERS_OF_DIFFERENCE_BEHIND = 20;
+
 bool is_distance_under_x_meters(Car car, EgoCar ego_car, double x_meters) {
   return abs(car.get_s() - ego_car.s) < x_meters;
 }
@@ -83,8 +86,7 @@ bool Predictor::is_front_free() {
   if (car_in_front.is_null()) {
     return true;
   }
-  int METERS_OF_DIFFERENCE = 20;
-  return !(car_in_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE);
+  return !(car_in_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE_FRONT);
 }
 
 // TODO: Consider car_left_behind.get_speed() vs ego_car.speed
@@ -97,9 +99,8 @@ bool Predictor::is_left_free() {
     return true;
   }
 
-  int METERS_OF_DIFFERENCE = 20;
-  bool is_left_front_free = car_left_front.is_null() || !(car_left_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE);
-  bool is_left_behind_free = car_left_behind.is_null() || !(car_left_behind.get_s() > ego_car.s - METERS_OF_DIFFERENCE);
+  bool is_left_front_free = car_left_front.is_null() || !(car_left_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE_FRONT);
+  bool is_left_behind_free = car_left_behind.is_null() || !(car_left_behind.get_s() > ego_car.s - METERS_OF_DIFFERENCE_BEHIND);
 
   return is_left_front_free && is_left_behind_free;
 }
@@ -114,9 +115,8 @@ bool Predictor::is_right_free() {
     return true;
   }
 
-  int METERS_OF_DIFFERENCE = 20;
-  bool is_right_front_free = car_right_front.is_null() || !(car_right_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE);
-  bool is_right_behind_free = car_right_behind.is_null() || !(car_right_behind.get_s() > ego_car.s - METERS_OF_DIFFERENCE);
+  bool is_right_front_free = car_right_front.is_null() || !(car_right_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE_FRONT);
+  bool is_right_behind_free = car_right_behind.is_null() || !(car_right_behind.get_s() > ego_car.s - METERS_OF_DIFFERENCE_BEHIND);
 
   return is_right_front_free && is_right_behind_free;
 }
