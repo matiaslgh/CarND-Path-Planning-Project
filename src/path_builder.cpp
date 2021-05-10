@@ -11,9 +11,6 @@ using std::max;
 using std::min;
 
 double MAX_SPEED = 49.5 / 2.24;
-int LEFT_LANE = 0;
-int CENTER_LANE = 1;
-int RIGHT_LANE = 2;
 
 void shiftToCarCoordinates(
   vector<double> &pts_x,
@@ -162,70 +159,42 @@ vector<vector<double>> PathBuilder::build_path(
   return getSmoothTransition(pts_x, pts_y, previous_path_x, previous_path_y, ref_vel, ref_yaw, ref_x, ref_y);
 }
 
-vector<LaneAndSpeed> PathBuilder::get_possible_lanes_and_speeds(Prediction prediction, int target_lane, double ref_vel) {
-  vector<LaneAndSpeed> lanes_and_speeds;
-  if (prediction.front_car_data.is_free) {
-    lanes_and_speeds.push_back({ target_lane, min(MAX_SPEED, ref_vel + 8 * 0.02) });
-  } else {
-    lanes_and_speeds.push_back({ target_lane, max(prediction.front_car_data.speed, ref_vel - 2 * 0.02) });
-
-    if (prediction.left_car_data.is_free) {
-      lanes_and_speeds.push_back({
-        max(target_lane - 1, LEFT_LANE),
-        min(MAX_SPEED, ref_vel + 5 * 0.02)
-      });
+LaneAndSpeed PathBuilder::get_best_lane_and_speed(Predictor predictor, int current_lane, double current_speed) {
+  if (predictor.is_front_free()) {
+    double speed = min(MAX_SPEED, current_speed + 8 * 0.02);
+    return { current_lane, speed };
+  }
+  
+  if (predictor.is_left_free() && predictor.is_right_free()) {
+    if (predictor.get_car_left_front().is_null()) {
+      double speed = min(MAX_SPEED, current_speed + 5 * 0.02);
+      return { current_lane - 1, speed };
     }
-
-    if (prediction.right_car_data.is_free) {
-      lanes_and_speeds.push_back({
-        min(target_lane + 1, RIGHT_LANE),
-        min(MAX_SPEED, ref_vel + 5 * 0.02)
-      });
+    if (predictor.get_car_right_front().is_null()) {
+      double speed = min(MAX_SPEED, current_speed + 5 * 0.02);
+      return { current_lane + 1, speed };
     }
-  }
-
-  return lanes_and_speeds;
-}
-
-double calculate_lane_change_cost(int lane, int potential_lane) {
-  return std::abs(lane - potential_lane) / 3;
-}
-
-double calculate_speed_cost(double car_speed, double potential_ref_vel) {
-  if (potential_ref_vel > MAX_SPEED) {
-    return 1;
-  }
-  if (potential_ref_vel < car_speed) {
-    return 2 * (car_speed - potential_ref_vel) / MAX_SPEED;
-  }
-
-  return 0.5 * (potential_ref_vel - car_speed) / MAX_SPEED;
-}
-
-double calculate_cost(int lane, double car_speed, int potential_lane, double potential_ref_vel) {
-  double cost_lane_change = calculate_lane_change_cost(lane, potential_lane);
-
-  double cost_speed = calculate_speed_cost(car_speed, potential_ref_vel);
-
-  return cost_lane_change + cost_speed;
-}
-
-LaneAndSpeed PathBuilder::get_best_lane_and_speed(vector<LaneAndSpeed> lane_and_speeds, int current_lane, double current_speed) {
-  double lowest_cost = 999999;
-  int best_lane = current_lane;
-  double best_speed = current_speed;
-
-  for (int i = 0; i < lane_and_speeds.size(); i++) {
-    int potential_lane = lane_and_speeds[i].lane;
-    double potential_ref_vel = lane_and_speeds[i].speed;
-    double cost = calculate_cost(current_lane, current_speed, potential_lane, potential_ref_vel);
-
-    if (cost < lowest_cost) {
-      lowest_cost = cost;
-      best_lane = potential_lane;
-      best_speed = potential_ref_vel;
+    double left_front_speed = predictor.get_car_left_front().get_speed();
+    double right_front_speed = predictor.get_car_right_front().get_speed();
+    if (left_front_speed > right_front_speed) {
+      double speed = max(left_front_speed, left_front_speed - 2 * 0.02);
+      return { current_lane - 1, speed };
     }
+    double speed = max(right_front_speed, right_front_speed - 2 * 0.02);
+    return { current_lane - 1, speed };
   }
 
-  return { best_lane, best_speed };
+  if (predictor.is_left_free()) {
+    double speed = min(MAX_SPEED, current_speed + 5 * 0.02);
+    return { current_lane - 1, speed };
+  }
+
+  if (predictor.is_right_free()) {
+    double speed = min(MAX_SPEED, current_speed + 5 * 0.02);
+    return { current_lane + 1, speed };
+  }
+
+  double target_speed_same_lane = predictor.get_car_in_front().get_speed();
+  double speed = max(target_speed_same_lane, target_speed_same_lane - 2 * 0.02);
+  return { current_lane, speed };
 }

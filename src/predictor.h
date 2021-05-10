@@ -6,23 +6,16 @@
 
 using nlohmann::json;
 
-struct CarData {
-  bool is_free;
-  double speed;
-};
-
-struct Prediction {
-  CarData left_car_data;
-  CarData front_car_data;
-  CarData right_car_data;
-};
-
 class Predictor {
   private:
     EgoCar ego_car;
     int target_lane;
     int previous_path_size;
-    vector<Car> cars_in_road;
+    Car car_in_front;
+    Car car_left_behind;
+    Car car_left_front;
+    Car car_right_behind;
+    Car car_right_front;
     bool is_close_to_ego_car(Car car);
     double predict_future_car_s(Car car);
     bool is_in_front_of_ego_car(Car car);
@@ -31,7 +24,15 @@ class Predictor {
 
   public:
     Predictor(int target_lane, EgoCar ego_car, json raw_sensor_fusion_data, int previous_path_size);
-    Prediction get_prediction();
+    Car get_car_in_front() { return car_in_front; };
+    Car get_car_left_behind() { return car_left_behind; };
+    Car get_car_left_front() { return car_left_front; };
+    Car get_car_right_behind() { return car_right_behind; };
+    Car get_car_right_front() { return car_right_front; };
+    bool is_front_free();
+    bool is_left_free();
+    bool is_right_free();
+    void clean_state();
 };
 
 #endif  // PREDICTOR_H

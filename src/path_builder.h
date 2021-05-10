@@ -28,8 +28,7 @@ class PathBuilder {
       int target_lane,
       double ref_vel
     );
-    vector<LaneAndSpeed> get_possible_lanes_and_speeds(Prediction prediction, int target_lane, double ref_vel);
-    LaneAndSpeed get_best_lane_and_speed(vector<LaneAndSpeed> lanes_and_speeds, int current_lane, double current_speed);
+    LaneAndSpeed get_best_lane_and_speed(Predictor predictor, int current_lane, double current_speed);
 };
 
 #endif // PATH_BUILDER_H
