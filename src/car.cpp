@@ -1,7 +1,8 @@
 #include "car.h"
+#include <cmath>
 
 double Car::get_speed() {
-  return sqrt(pow(vx, 2) + pow(vy, 2));
+  return std::sqrt(std::pow(vx, 2) + std::pow(vy, 2));
 }
 
 int Car::get_lane() {
