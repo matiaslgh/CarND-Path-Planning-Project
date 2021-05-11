@@ -37,6 +37,11 @@ sudo chmod u+x {simulator_file_name}
 3. Compile: `cmake .. && make`
 4. Run it: `./path_planning`.
 
+## Run with docker
+
+1. docker build -f Dockerfile -t path-planning .
+2. docker run -p 4567:4567 path-planning:latest
+
 Here is the data provided from the Simulator to the C++ Program
 
 #### Main car's localization Data (No Noise)
