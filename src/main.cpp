@@ -105,7 +105,7 @@ int main() {
           double end_path_d = data_json["end_path_d"];
 
           Predictor predictor { target_lane, ego_car, data_json["sensor_fusion"], (int) previous_path_x.size() };
-          LaneAndSpeed best_lane_and_speed = path_builder.get_best_lane_and_speed(predictor, target_lane, ref_vel);
+          LaneAndSpeed best_lane_and_speed = path_builder.get_best_lane_and_speed(predictor, target_lane, ref_vel, ego_car);
           predictor.clean_state();
           target_lane = best_lane_and_speed.lane;
           ref_vel = best_lane_and_speed.speed;

@@ -159,7 +159,7 @@ vector<vector<double>> PathBuilder::build_path(
   return getSmoothTransition(pts_x, pts_y, previous_path_x, previous_path_y, ref_vel, ref_yaw, ref_x, ref_y);
 }
 
-LaneAndSpeed PathBuilder::get_best_lane_and_speed(Predictor predictor, int current_lane, double current_speed) {
+LaneAndSpeed PathBuilder::get_best_lane_and_speed(Predictor predictor, int current_lane, double current_speed, EgoCar ego_car) {
   if (predictor.is_front_free()) {
     double speed = min(MAX_SPEED, current_speed + 8 * 0.02);
     return { current_lane, speed };
@@ -185,16 +185,42 @@ LaneAndSpeed PathBuilder::get_best_lane_and_speed(Predictor predictor, int curre
   }
 
   if (predictor.is_left_free()) {
-    double speed = min(MAX_SPEED, current_speed + 0.02);
-    return { current_lane - 1, speed };
+    Car car_left_front = predictor.get_car_left_front();
+    if (car_left_front.is_null() || (!car_left_front.is_null() && car_left_front.get_speed() > current_speed)) {
+      double speed = min(MAX_SPEED, current_speed + 0.02);
+      return { current_lane - 1, speed };
+    }
   }
 
   if (predictor.is_right_free()) {
-    double speed = min(MAX_SPEED, current_speed + 0.02);
-    return { current_lane + 1, speed };
+    Car car_right_front = predictor.get_car_right_front();
+    if (car_right_front.is_null() || (!car_right_front.is_null() && car_right_front.get_speed() > current_speed)) {
+      double speed = min(MAX_SPEED, current_speed + 0.02);
+      return { current_lane + 1, speed };
+    }
   }
 
-  double target_speed_same_lane = predictor.get_car_in_front().get_speed();
-  double speed = max(target_speed_same_lane, current_speed - 2 * 0.02);
+  Car car_in_front = predictor.get_car_in_front();
+  if (ego_car.s + 25 > car_in_front.get_s() && car_in_front.get_speed() <= current_speed) {
+    double speed = min(current_speed, current_speed - 0.02);
+    return { current_lane, speed };
+  }
+
+  if (ego_car.s + 15 > car_in_front.get_s() && car_in_front.get_speed() <= current_speed) {
+    double speed = min(current_speed, current_speed - 4 * 0.02);
+    return { current_lane, speed };
+  }
+
+  if (ego_car.s + 10 > car_in_front.get_s() && car_in_front.get_speed() <= current_speed) {
+    double speed = min(current_speed, current_speed - 8 * 0.02);
+    return { current_lane, speed };
+  }
+
+  if (ego_car.s + 5 > car_in_front.get_s() && car_in_front.get_speed() <= current_speed) {
+    return { current_lane, car_in_front.get_speed() - 0.02 };
+  }
+
+
+  double speed = max(car_in_front.get_speed(), current_speed - 2 * 0.02);
   return { current_lane, speed };
 }

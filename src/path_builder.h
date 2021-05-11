@@ -28,7 +28,7 @@ class PathBuilder {
       int target_lane,
       double ref_vel
     );
-    LaneAndSpeed get_best_lane_and_speed(Predictor predictor, int current_lane, double current_speed);
+    LaneAndSpeed get_best_lane_and_speed(Predictor predictor, int current_lane, double current_speed, EgoCar ego_car);
 };
 
 #endif // PATH_BUILDER_H
