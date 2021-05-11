@@ -9,6 +9,7 @@ int RIGHT_LANE = 2;
 
 int METERS_OF_DIFFERENCE_FRONT = 40;
 int METERS_OF_DIFFERENCE_BEHIND = 20;
+int METERS_OF_DIFFERENCE_BEHIND_SUPER_CLOSE = 10;
 
 bool is_distance_under_x_meters(Car car, EgoCar ego_car, double x_meters) {
   return abs(car.get_s() - ego_car.s) < x_meters;
@@ -89,7 +90,6 @@ bool Predictor::is_front_free() {
   return !(car_in_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE_FRONT);
 }
 
-// TODO: Consider car_left_behind.get_speed() vs ego_car.speed
 bool Predictor::is_left_free() {
   if (target_lane == LEFT_LANE) {
     return false;
@@ -100,12 +100,14 @@ bool Predictor::is_left_free() {
   }
 
   bool is_left_front_free = car_left_front.is_null() || !(car_left_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE_FRONT);
-  bool is_left_behind_free = car_left_behind.is_null() || !(car_left_behind.get_s() > ego_car.s - METERS_OF_DIFFERENCE_BEHIND);
+  bool is_left_behind_free =
+    car_left_behind.is_null() ||
+    !(car_left_behind.get_s() > ego_car.s - METERS_OF_DIFFERENCE_BEHIND) ||
+    (!(car_left_behind.get_s() > ego_car.s - METERS_OF_DIFFERENCE_BEHIND_SUPER_CLOSE) && ego_car.speed > car_left_behind.get_speed());
 
   return is_left_front_free && is_left_behind_free;
 }
 
-// TODO: Consider car_right_behind.get_speed() vs ego_car.speed
 bool Predictor::is_right_free() {
   if (target_lane == RIGHT_LANE) {
     return false;
@@ -116,7 +118,10 @@ bool Predictor::is_right_free() {
   }
 
   bool is_right_front_free = car_right_front.is_null() || !(car_right_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE_FRONT);
-  bool is_right_behind_free = car_right_behind.is_null() || !(car_right_behind.get_s() > ego_car.s - METERS_OF_DIFFERENCE_BEHIND);
+  bool is_right_behind_free =
+    car_right_behind.is_null() ||
+    !(car_right_behind.get_s() > ego_car.s - METERS_OF_DIFFERENCE_BEHIND) ||
+    (!(car_right_behind.get_s() > ego_car.s - METERS_OF_DIFFERENCE_BEHIND_SUPER_CLOSE) && ego_car.speed > car_right_behind.get_speed());
 
   return is_right_front_free && is_right_behind_free;
 }
