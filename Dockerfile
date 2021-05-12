@@ -22,7 +22,7 @@ RUN apt-get update && \
 
 COPY . .
 
-RUN mkdir build && cd build && cmake .. && make
+RUN mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .. && make
 
 WORKDIR /usr/src/app/build
 

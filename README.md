@@ -34,7 +34,7 @@ sudo chmod u+x {simulator_file_name}
 
 1. Clone this repo.
 2. Make a build directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make`
+3. Compile: `cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .. && make`
 4. Run it: `./path_planning`.
 
 ## Run with docker
