@@ -136,6 +136,34 @@ vector<vector<double>> getSmoothTransition(
   return built_path;
 }
 
+void log(
+  vector<double> pts_x,
+  vector<double> pts_y,
+  const vector<double> &previous_path_x,
+  const vector<double> &previous_path_y,
+  double ref_vel
+) {
+
+  std::cout << "pts_x: ";
+  for (int i=0; i < pts_x.size(); i++) {
+    std::cout << pts_x[i] << ", ";
+  }
+  std::cout << std::endl;
+  std::cout << "pts_y: ";
+  for (int i=0; i < pts_y.size(); i++) {
+    std::cout << pts_y[i] << ", ";
+  }
+  std::cout << std::endl;
+  
+  std::cout << "ref_vel: " << ref_vel << std::endl;
+
+  std::cout << "previous_path_points: ";
+  for (int i=0; i < previous_path_x.size(); i++) {
+    std::cout << "(" << previous_path_x[i] << "," << previous_path_y[i] << "), ";
+  }
+  std::cout << std::endl;
+}
+
 vector<vector<double>> PathBuilder::build_path(
   const vector<double> &previous_path_x,
   const vector<double> &previous_path_y,
@@ -155,11 +183,42 @@ vector<vector<double>> PathBuilder::build_path(
   findPointsInTheFuture(pts_x, pts_y, lane, ego_car.s, maps_s, maps_x, maps_y);
 
   shiftToCarCoordinates(pts_x, pts_y, ref_x, ref_y, ref_yaw);
+
+  log(pts_x, pts_y, previous_path_x, previous_path_y, ref_vel);
   
   return getSmoothTransition(pts_x, pts_y, previous_path_x, previous_path_y, ref_vel, ref_yaw, ref_x, ref_y);
 }
 
+void logCarInfoIfNotNull(Car car, string log_prefix) {
+  if (!car.is_null()) {
+    std::cout << log_prefix << ".get_lane(): " << car.get_lane() << std::endl;
+    std::cout << log_prefix << ".get_s(): " << car.get_s() << std::endl;
+    std::cout << log_prefix << ".get_speed(): " << car.get_speed() << std::endl;
+  }
+}
+
+void log(Predictor predictor, int current_lane, double current_speed, EgoCar ego_car) {
+  std::cout << "--------------- Debugging data ---------------" << std::endl;
+  std::cout << "current_lane: " << current_lane << std::endl;
+  std::cout << "ego_car.get_lane(): " << ego_car.get_lane() << std::endl;
+  std::cout << "ego_car.s: " << ego_car.s << std::endl;
+  std::cout << "ego_car.speed: " << ego_car.speed << std::endl;
+  std::cout << "ego_car.x: " << ego_car.x << std::endl;
+  std::cout << "ego_car.y: " << ego_car.y << std::endl;
+  std::cout << "ego_car.yaw: " << ego_car.yaw << std::endl;
+  std::cout << "current_speed: " << current_speed << std::endl;
+  std::cout << "is_front_free(): " << predictor.is_front_free() << std::endl;
+  std::cout << "is_left_free(): " << predictor.is_left_free() << std::endl;
+  std::cout << "is_right_free(): " << predictor.is_right_free() << std::endl;
+  logCarInfoIfNotNull(predictor.get_car_in_front(), "car_in_front");
+  logCarInfoIfNotNull(predictor.get_car_left_behind(), "car_left_behind");
+  logCarInfoIfNotNull(predictor.get_car_left_front(), "car_left_front");
+  logCarInfoIfNotNull(predictor.get_car_right_behind(), "car_right_behind");
+  logCarInfoIfNotNull(predictor.get_car_right_front(), "car_right_front");
+}
+
 LaneAndSpeed PathBuilder::get_best_lane_and_speed(Predictor predictor, int current_lane, double current_speed, EgoCar ego_car) {
+  log(predictor, current_lane, current_speed, ego_car);
   if (predictor.is_front_free()) {
     double speed = min(MAX_SPEED, current_speed + 8 * 0.02);
     return { current_lane, speed };
