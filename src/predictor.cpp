@@ -7,9 +7,9 @@ int LEFT_LANE = 0;
 int CENTER_LANE = 1;
 int RIGHT_LANE = 2;
 
-int METERS_OF_DIFFERENCE_FRONT = 40;
-int METERS_OF_DIFFERENCE_BEHIND = 20;
-int METERS_OF_DIFFERENCE_BEHIND_SUPER_CLOSE = 10;
+int METERS_OF_DIFFERENCE_FRONT = 25;
+int METERS_OF_DIFFERENCE_BEHIND = 10;
+int METERS_OF_DIFFERENCE_BEHIND_SUPER_CLOSE = 5;
 
 bool is_distance_under_x_meters(Car car, EgoCar ego_car, double x_meters) {
   return abs(car.get_s() - ego_car.s) < x_meters;
@@ -57,7 +57,7 @@ Predictor::Predictor(int target_lane_, EgoCar ego_car_, json raw_sensor_fusion_d
 }
 
 bool Predictor::is_close_to_ego_car(Car car) {
-  int LIMIT = 100;
+  int LIMIT = 60;
   return is_distance_under_x_meters(car, ego_car, LIMIT);
 }
 
@@ -87,7 +87,7 @@ bool Predictor::is_front_free() {
   if (car_in_front.is_null()) {
     return true;
   }
-  return !(car_in_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE_FRONT);
+  return !(car_in_front.get_s() < ego_car.s + METERS_OF_DIFFERENCE_FRONT + 15);
 }
 
 bool Predictor::is_left_free() {
