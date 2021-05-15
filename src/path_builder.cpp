@@ -277,27 +277,10 @@ LaneAndSpeed PathBuilder::get_best_lane_and_speed(Predictor predictor, int curre
   }
 
   Car car_in_front = predictor.get_car_in_front();
-  if (ego_car.s + 5 > car_in_front.get_s()) {
-    std::cout << "About to crash! Expand distance from car in front. No matter jerk violation" << std::endl;
-    double speed = min(current_speed, car_in_front.get_speed() - MAX_ACCELERATION / 2);
-    return { current_lane, speed };
-  }
 
-  if (ego_car.s + 10 > car_in_front.get_s()) {
-    std::cout << "Too close to car in front (less than 10 meters)" << std::endl;
-    double speed = min(current_speed, current_speed - MAX_ACCELERATION);
-    return { current_lane, speed };
-  }
-
-  if (ego_car.s + 15 > car_in_front.get_s()) {
-    std::cout << "Too close to car in front (less than 15 meters)" << std::endl;
-    double speed = min(current_speed, current_speed - MAX_ACCELERATION / 2);
-    return { current_lane, speed };
-  }
-
-  if (ego_car.s + 25 > car_in_front.get_s()) {
-    std::cout << "Too close to car in front (less than 25 meters)" << std::endl;
-    double speed = min(current_speed, current_speed - MAX_ACCELERATION / 4);
+  if (ego_car.s + 30 > car_in_front.get_s()) {
+    std::cout << "Too close to car in front (less than 30 meters)" << std::endl;
+    double speed = max(car_in_front.get_speed() - MAX_ACCELERATION, current_speed - MAX_ACCELERATION);
     return { current_lane, speed };
   }
 
