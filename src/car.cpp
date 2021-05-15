@@ -2,7 +2,7 @@
 #include <cmath>
 
 double Car::get_speed() {
-  return std::sqrt(std::pow(vx, 2) + std::pow(vy, 2));
+  return std::sqrt(std::pow(vx, 2) + std::pow(vy, 2)) * 2.24;
 }
 
 int Car::get_lane() {

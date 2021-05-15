@@ -10,7 +10,8 @@ using std::vector;
 using std::max;
 using std::min;
 
-double MAX_SPEED = 49.5 / 2.24;
+double MAX_SPEED = 49.5;
+double MAX_ACCELERATION = 0.224;
 
 void shiftToCarCoordinates(
   vector<double> &pts_x,
@@ -111,7 +112,7 @@ vector<vector<double>> getSmoothTransition(
   double x_add_on = 0;
 
   for (int i = 1; i < 10 - prev_size; i++ ) {
-    double N = target_dist / (0.02 * ref_vel);
+    double N = target_dist / (0.02 * ref_vel / 2.24);
     double x_point = x_add_on + target_x/N;
     double y_point = s(x_point);
 
@@ -230,33 +231,38 @@ void log(Predictor predictor, int current_lane, double current_speed, EgoCar ego
 LaneAndSpeed PathBuilder::get_best_lane_and_speed(Predictor predictor, int current_lane, double current_speed, EgoCar ego_car) {
   log(predictor, current_lane, current_speed, ego_car);
   if (predictor.is_front_free()) {
-    double speed = min(MAX_SPEED, current_speed + 8 * 0.02);
+    double speed = min(MAX_SPEED, current_speed + MAX_ACCELERATION);
     return { current_lane, speed };
   }
   
   if (predictor.is_left_free() && predictor.is_right_free()) {
     if (predictor.get_car_left_front().is_null()) {
-      double speed = min(MAX_SPEED, current_speed + 0.02);
+      std::cout << "Change lane to the left" << std::endl;
+      double speed = min(MAX_SPEED, current_speed - MAX_ACCELERATION / 4);
       return { current_lane - 1, speed };
     }
     if (predictor.get_car_right_front().is_null()) {
-      double speed = min(MAX_SPEED, current_speed + 0.02);
+      std::cout << "Change lane to the right" << std::endl;
+      double speed = min(MAX_SPEED, current_speed - MAX_ACCELERATION / 4);
       return { current_lane + 1, speed };
     }
     double left_front_speed = predictor.get_car_left_front().get_speed();
     double right_front_speed = predictor.get_car_right_front().get_speed();
     if (left_front_speed > right_front_speed) {
-      double speed = max(left_front_speed, left_front_speed - 0.02);
+      std::cout << "Change lane to the left because its faster than the right" << std::endl;
+      double speed = max(left_front_speed, current_speed - MAX_ACCELERATION / 4);
       return { current_lane - 1, speed };
     }
-    double speed = max(right_front_speed, right_front_speed - 0.02);
-    return { current_lane - 1, speed };
+    double speed = max(right_front_speed, current_speed - MAX_ACCELERATION / 4);
+    std::cout << "Change lane to the right because its faster than the left" << std::endl;
+    return { current_lane + 1, speed };
   }
 
   if (predictor.is_left_free()) {
     Car car_left_front = predictor.get_car_left_front();
     if (car_left_front.is_null() || (!car_left_front.is_null() && car_left_front.get_speed() > current_speed)) {
-      double speed = min(MAX_SPEED, current_speed + 0.02);
+      std::cout << "Change lane to the left because car_left_front is null or its speed is faster than current_speed" << std::endl;
+      double speed = min(MAX_SPEED, current_speed - MAX_ACCELERATION / 4);
       return { current_lane - 1, speed };
     }
   }
@@ -264,32 +270,37 @@ LaneAndSpeed PathBuilder::get_best_lane_and_speed(Predictor predictor, int curre
   if (predictor.is_right_free()) {
     Car car_right_front = predictor.get_car_right_front();
     if (car_right_front.is_null() || (!car_right_front.is_null() && car_right_front.get_speed() > current_speed)) {
-      double speed = min(MAX_SPEED, current_speed + 0.02);
+      std::cout << "Change lane to the right because car_right_front is null or its speed is faster than current_speed" << std::endl;
+      double speed = min(MAX_SPEED, current_speed - MAX_ACCELERATION / 4);
       return { current_lane + 1, speed };
     }
   }
 
   Car car_in_front = predictor.get_car_in_front();
-  if (ego_car.s + 25 > car_in_front.get_s() && car_in_front.get_speed() <= current_speed) {
-    double speed = min(current_speed, current_speed - 0.02);
+  if (ego_car.s + 5 > car_in_front.get_s()) {
+    std::cout << "About to crash! Expand distance from car in front. No matter jerk violation" << std::endl;
+    double speed = min(current_speed, car_in_front.get_speed() - MAX_ACCELERATION / 2);
     return { current_lane, speed };
   }
 
-  if (ego_car.s + 15 > car_in_front.get_s() && car_in_front.get_speed() <= current_speed) {
-    double speed = min(current_speed, current_speed - 4 * 0.02);
+  if (ego_car.s + 10 > car_in_front.get_s()) {
+    std::cout << "Too close to car in front (less than 10 meters)" << std::endl;
+    double speed = min(current_speed, current_speed - MAX_ACCELERATION);
     return { current_lane, speed };
   }
 
-  if (ego_car.s + 10 > car_in_front.get_s() && car_in_front.get_speed() <= current_speed) {
-    double speed = min(current_speed, current_speed - 8 * 0.02);
+  if (ego_car.s + 15 > car_in_front.get_s()) {
+    std::cout << "Too close to car in front (less than 15 meters)" << std::endl;
+    double speed = min(current_speed, current_speed - MAX_ACCELERATION / 2);
     return { current_lane, speed };
   }
 
-  if (ego_car.s + 5 > car_in_front.get_s() && car_in_front.get_speed() <= current_speed) {
-    return { current_lane, car_in_front.get_speed() - 0.02 };
+  if (ego_car.s + 25 > car_in_front.get_s()) {
+    std::cout << "Too close to car in front (less than 25 meters)" << std::endl;
+    double speed = min(current_speed, current_speed - MAX_ACCELERATION / 4);
+    return { current_lane, speed };
   }
 
-
-  double speed = max(car_in_front.get_speed(), current_speed - 2 * 0.02);
+  double speed = max(car_in_front.get_speed(), current_speed - MAX_ACCELERATION / 4);
   return { current_lane, speed };
 }
